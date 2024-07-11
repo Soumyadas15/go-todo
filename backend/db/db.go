@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/gocql/gocql"
-	"github.com/spf13/viper"
 )
 
 var ErrUserNotFound = errors.New("user not found")
@@ -34,22 +33,9 @@ type Todo struct {
 
 var Session *gocql.Session
 
-func InitCluster() {
+func InitCluster(databaseURI string) {
 
 	var err error
-
-	viper.SetConfigFile("config.yaml")
-	viper.AutomaticEnv()
-
-	err = viper.ReadInConfig()
-	if err != nil {
-		log.Printf("Error reading config file, %s", err)
-	}
-
-	databaseURI := viper.GetString("database_uri")
-	if databaseURI == "" {
-		log.Fatal("DATABASE_URI must be set")
-	}
 
 	var cluster = gocql.NewCluster(databaseURI)
 
