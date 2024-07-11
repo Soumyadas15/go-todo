@@ -30,7 +30,13 @@ export const login = async (values: z.infer<typeof LoginSchema>) => {
 
         const { user, token } = response.data;
 
-        cookies().set("accessToken", JSON.stringify(user), {
+        cookies().set("userToken", JSON.stringify(user), {
+            httpOnly: true,
+            maxAge: 24 * 60 * 60,
+            sameSite: "strict"
+        });
+
+        cookies().set("jwtToken", token, {
             httpOnly: true,
             maxAge: 24 * 60 * 60,
             sameSite: "strict"

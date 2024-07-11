@@ -1,0 +1,449 @@
+definitions:
+  authHandlers.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  authHandlers.LoginResponse:
+    properties:
+      message:
+        type: string
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/db.User'
+    type: object
+  authHandlers.RegisterRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  authHandlers.RegisterResponse:
+    properties:
+      message:
+        type: string
+      user:
+        $ref: '#/definitions/db.User'
+    type: object
+  db.Todo:
+    properties:
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      status:
+        type: string
+      title:
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        type: string
+    type: object
+  db.User:
+    properties:
+      createdAt:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      password:
+        type: string
+      todos:
+        items:
+          $ref: '#/definitions/db.Todo'
+        type: array
+      username:
+        type: string
+    type: object
+  todoHandlers.CreateTodoRequest:
+    properties:
+      description:
+        type: string
+      title:
+        type: string
+    type: object
+  todoHandlers.CreateTodoResponse:
+    properties:
+      message:
+        type: string
+      todo:
+        $ref: '#/definitions/db.Todo'
+    type: object
+  todoHandlers.DeleteResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  todoHandlers.GetTodosResponse:
+    properties:
+      nextPageState:
+        type: string
+      todos:
+        items:
+          $ref: '#/definitions/db.Todo'
+        type: array
+    type: object
+  todoHandlers.MarkTodoResponse:
+    properties:
+      message:
+        type: string
+      todo:
+        $ref: '#/definitions/db.Todo'
+    type: object
+  todoHandlers.UpdateTodoRequest:
+    properties:
+      description:
+        type: string
+      title:
+        type: string
+    type: object
+  todoHandlers.UpdateTodoResponse:
+    properties:
+      message:
+        type: string
+      todo:
+        $ref: '#/definitions/db.Todo'
+    type: object
+info:
+  contact: {}
+paths:
+  /api/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user credentials and generate JWT token
+      parameters:
+      - description: User credentials
+        in: body
+        name: creds
+        required: true
+        schema:
+          $ref: '#/definitions/authHandlers.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/authHandlers.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login
+      tags:
+      - auth
+  /api/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user
+      parameters:
+      - description: User object to register
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/authHandlers.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/authHandlers.RegisterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register
+      tags:
+      - auth
+  /api/todo:
+    post:
+      consumes:
+      - application/json
+      description: Create a new todo item for the authenticated user
+      parameters:
+      - description: JWT access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Todo object to be created
+        in: body
+        name: todo
+        required: true
+        schema:
+          $ref: '#/definitions/todoHandlers.CreateTodoRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/todoHandlers.CreateTodoResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new todo
+      tags:
+      - todo
+  /api/todo/{todoId}:
+    delete:
+      description: Delete a todo item belonging to the authenticated user by its ID
+      parameters:
+      - description: JWT access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Todo ID to delete
+        in: path
+        name: todoId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/todoHandlers.DeleteResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a todo by ID
+      tags:
+      - todo
+    put:
+      consumes:
+      - application/json
+      description: Update a todo item for the authenticated user by its ID
+      parameters:
+      - description: JWT access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Todo ID to update
+        in: path
+        name: todoId
+        required: true
+        type: string
+      - description: Updated todo details
+        in: body
+        name: updateReq
+        required: true
+        schema:
+          $ref: '#/definitions/todoHandlers.UpdateTodoRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/todoHandlers.UpdateTodoResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update a todo by ID
+      tags:
+      - todo
+  /api/todo/mark-complete/{todoId}:
+    put:
+      description: Mark a todo item as complete for the authenticated user by its
+        ID
+      parameters:
+      - description: JWT access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Todo ID to mark as complete
+        in: path
+        name: todoId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/todoHandlers.MarkTodoResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Mark a todo as complete
+      tags:
+      - todo
+  /api/todos:
+    get:
+      description: Retrieve all todo items from the database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/db.Todo'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all todo items
+      tags:
+      - todo
+  /api/user/todos:
+    get:
+      description: Retrieve todo items belonging to the authenticated user
+      parameters:
+      - description: JWT access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Number of items per page (default is 4)
+        in: query
+        name: pageSize
+        type: integer
+      - description: Page state for pagination
+        in: query
+        name: pageState
+        type: string
+      - description: Field to sort by
+        in: query
+        name: sortBy
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/todoHandlers.GetTodosResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get todo items by user ID
+      tags:
+      - todo
+swagger: "2.0"

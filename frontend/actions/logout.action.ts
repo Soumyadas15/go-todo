@@ -1,21 +1,24 @@
 "use server"
 
 import { DEFAULT_LOGOUT_REDIRECT } from "@/routes";
-import { redirect } from "next/dist/server/api-utils";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-
+import { getCurrentUser } from "@/lib/get-current-user";
+import { getCurrentToken } from "@/lib/get-current-token";
 
 export const signOut = async () => {
     try{
 
-        const deletedCookie = cookies().delete('accessToken');
+        const cookieStore = cookies();
+
+        const deletedUser = cookieStore.delete('userToken');
+        const deletedToken= cookieStore.delete('jwtToken');
 
         return {
-            success: true,
-            redirectTo: DEFAULT_LOGOUT_REDIRECT,
+            success: "success",
+            redirect: true
         }
-
+        
     } catch (error : any) {
         if (error.response) {
             console.error('Error:', error.response.data);

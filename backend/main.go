@@ -6,8 +6,11 @@ import (
 	"log"
 	"net/http"
 
+	_ "backend/docs"
+
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func main() {
@@ -23,5 +26,7 @@ func main() {
 	defer db.CloseCluster()
 
 	r := router.Router()
+	r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
+
 	log.Fatal(http.ListenAndServe(":8080", r))
 }

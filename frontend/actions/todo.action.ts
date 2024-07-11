@@ -5,6 +5,7 @@ import * as z from "zod";
 import axios from "axios";
 import { getCurrentUser } from "@/lib/get-current-user";
 import { cookies } from "next/headers";
+import { getCurrentToken } from "@/lib/get-current-token";
 
 
 
@@ -12,12 +13,16 @@ export const createTodo = async (values: z.infer<typeof TodoSchema>) => {
     try {
 
         const { title, description } = values;
+        
         const currentUser = await getCurrentUser();
+        const currentToken = await getCurrentToken();
+
+        if(!currentToken){
+            return { error: "Invalid token" };
+        }
 
         if(!currentUser){
-            return {
-                error: "User not found",
-            };
+            return { error: "User not found" };
         }
 
         const data = {
@@ -30,6 +35,7 @@ export const createTodo = async (values: z.infer<typeof TodoSchema>) => {
             {
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${currentToken}`,
                 },
             })
 
@@ -69,6 +75,7 @@ export const updateTodo = async (values: any) => {
         const { title, description, todoId } = values;
 
         const currentUser = await getCurrentUser();
+        const currentToken = await getCurrentToken();
 
         if(!currentUser){
             return {
@@ -89,6 +96,7 @@ export const updateTodo = async (values: any) => {
             {
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${currentToken}`,
                 },
             })
 
@@ -167,8 +175,8 @@ export const deleteTodo = async (todoId : string) => {
     try {
 
         const currentUser = await getCurrentUser();
-        const userId = currentUser.id;
-
+        const currentToken = await getCurrentToken();
+        
         if(!currentUser){
             return {
                 error: "User not found",
@@ -176,9 +184,13 @@ export const deleteTodo = async (todoId : string) => {
         }
 
 
-        const response = await axios.delete(`${process.env.BACKEND_URL}/api/todo/${todoId}`, {
-            data: { userId }
-        });
+        const response = await axios.delete(`${process.env.BACKEND_URL}/api/todo/${todoId}`,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${currentToken}`,
+                },
+            });
 
         return {
             success: 'Ok'
@@ -209,6 +221,8 @@ export const markAsComplete = async (todoId : string) => {
     try{
 
         const currentUser = await getCurrentUser();
+        const currentToken = await getCurrentToken();
+        
         const userId = currentUser.id;
         const data = { userId }
 
@@ -221,7 +235,11 @@ export const markAsComplete = async (todoId : string) => {
             };
         }
         const apiUrl = `${process.env.BACKEND_URL}/api/todo/mark-complete/${todoId}`
-        const response = await axios.put(apiUrl, data);
+        const response = await axios.put(apiUrl, data, {
+            headers: {
+                'Authorization': `Bearer ${currentToken}`,
+            },
+        });
 
         return {
             success: 'Ok'

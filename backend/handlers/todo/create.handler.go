@@ -1,56 +1,74 @@
 package todoHandlers
 
-
 import (
-	"time"
 	"backend/db"
-    "backend/db/todo"
-	"net/http"
+	"backend/db/todo"
+	authHandlers "backend/handlers/auth"
 	"encoding/json"
-	"github.com/google/uuid"
-    "github.com/gocql/gocql"
+	"net/http"
+	"time"
+
+	"github.com/gocql/gocql"
 )
 
-
-type CreateTodoResponse struct {
-    Message string    `json:"message"`
-    Todo    db.Todo   `json:"todo"`
+type CreateTodoRequest struct {
+	Title       string `json:"title"`
+	Description string `json:"description"`
 }
 
+type CreateTodoResponse struct {
+	Message string  `json:"message"`
+	Todo    db.Todo `json:"todo"`
+}
 
+// @Summary Create a new todo
+// @Description Create a new todo item for the authenticated user
+// @Tags todo
+// @Accept  json
+// @Produce  json
+// @Param Authorization header string true "JWT access token"
+// @Param todo body CreateTodoRequest true "Todo object to be created"
+// @Success 201 {object} CreateTodoResponse
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/todo [post]
 func CreateTodoHandler(w http.ResponseWriter, r *http.Request) {
-    var myTodo db.Todo
 
-    err := json.NewDecoder(r.Body).Decode(&myTodo)
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusBadRequest)
-        return
-    }
+	userID, ok := r.Context().Value(authHandlers.UserIdKey).(gocql.UUID)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 
-	currentTime := time.Now()
-    myTodo.CreatedAt = currentTime
-    myTodo.UpdatedAt = currentTime
-	myTodo.Status = "pending"
-
-	id, err := gocql.ParseUUID(uuid.New().String())
+	var reqBody CreateTodoRequest
+	err := json.NewDecoder(r.Body).Decode(&reqBody)
 	if err != nil {
-        http.Error(w, "failed to generate UUID", http.StatusInternalServerError)
-        return
-    }
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
-	myTodo.ID = id
+	myTodo := db.Todo{
+		Title:       reqBody.Title,
+		Description: reqBody.Description,
+		UserID:      userID,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+		Status:      "pending",
+		ID:          gocql.TimeUUID(),
+	}
 
-    if err := todo.CreateTodo(myTodo); err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-        return
-    }
+	if err := todo.CreateTodo(myTodo); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-    response := CreateTodoResponse{
-        Message: "success",
-        Todo:    myTodo,
-    }
+	response := CreateTodoResponse{
+		Message: "success",
+		Todo:    myTodo,
+	}
 
-    w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-    json.NewEncoder(w).Encode(response)
+	json.NewEncoder(w).Encode(response)
 }

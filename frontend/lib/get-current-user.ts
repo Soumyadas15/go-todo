@@ -7,9 +7,9 @@ export const getCookie = async (name: string) => {
 
 
 export async function getCurrentUser() {
-    const accessToken = await getCookie("accessToken");
-    if(accessToken){
-        return JSON.parse(accessToken);
+    const userToken = await getCookie("userToken");
+    if(userToken){
+        return JSON.parse(userToken);
     }
     else{
         return null;

@@ -1,49 +1,83 @@
 package authHandlers
 
 import (
-    "encoding/json"
-    "net/http"
-    "backend/db"
+	"backend/db"
 	"backend/db/user"
-    "github.com/google/uuid"
-    "github.com/gocql/gocql"
+	"encoding/json"
+	"net/http"
+	"time"
+
+	"github.com/gocql/gocql"
+	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
-
 type RegisterResponse struct {
-    Message string `json:"message"`
-    User    db.User `json:"user,omitempty"`
+	Message string  `json:"message"`
+	User    db.User `json:"user,omitempty"`
 }
 
+type RegisterRequest struct {
+	Email    string `json:"email"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
 
-
-
+// @Summary Register
+// @Description Register a new user
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param user body RegisterRequest true "User object to register"
+// @Success 200 {object} RegisterResponse
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/auth/register [post]
 func Register(w http.ResponseWriter, r *http.Request) {
-    var myUser db.User
-    err := json.NewDecoder(r.Body).Decode(&myUser)
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusBadRequest)
-        return
-    }
 
-    id, err := gocql.ParseUUID(uuid.New().String())
-    if err != nil {
-        http.Error(w, "failed to generate UUID", http.StatusInternalServerError)
-        return
-    }
+	var req RegisterRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
-    myUser.ID = id
+	id, err := gocql.ParseUUID(uuid.New().String())
+	if err != nil {
+		http.Error(w, "failed to generate UUID", http.StatusInternalServerError)
+		return
+	}
 
-    if err := user.CreateUser(myUser); err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-        return
-    }
+	hashedPassword, err := HashPassword(req.Password)
+	if err != nil {
+		http.Error(w, "failed to hash password", http.StatusInternalServerError)
+		return
+	}
 
-    response := RegisterResponse{
-        Message: "success",
-        User:    myUser,
-    }
-    w.Header().Set("Content-Type", "application/json");
-    w.Header().Set("Access-Control-Allow-Origin", "*")
-    json.NewEncoder(w).Encode(response)
+	myUser := db.User{
+		Email:     req.Email,
+		Username:  req.Username,
+		Password:  hashedPassword,
+		CreatedAt: time.Now(),
+	}
+
+	myUser.ID = id
+
+	if err := user.CreateUser(myUser); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	response := RegisterResponse{
+		Message: "success",
+		User:    myUser,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	json.NewEncoder(w).Encode(response)
+}
+
+func HashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	return string(bytes), err
 }

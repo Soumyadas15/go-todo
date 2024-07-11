@@ -18,6 +18,7 @@ import { DEFAULT_LOGOUT_REDIRECT } from "@/routes";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "@/actions/logout.action";
+import toast from "react-hot-toast";
 
 interface UserMenuProps{
     user: User;
@@ -33,7 +34,12 @@ export const UserMenu = ({
         startTransition(() => {
             signOut()
                 .then((data : any) => {
-                    router.push(`${DEFAULT_LOGOUT_REDIRECT}`)
+                    if(data.redirect){
+                        router.push(`${DEFAULT_LOGOUT_REDIRECT}`)
+                    }
+                })
+                .catch((error) => {
+                    toast.error("Unexpected error encountered")
                 })
         })
     }

@@ -12,19 +12,20 @@ export function middleware(request: NextRequest) {
 
     const { nextUrl } = request;
 
-    let user = cookies().get('accessToken')?.value ?? "";
+    const cookieMaster = cookies();
+
+    let user = cookieMaster.get('userToken')?.value ?? "";
+    let token = cookies().get('jwtToken')?.value ?? "";
     
     const isAuthRoute = authRoutes.includes(nextUrl.pathname);
 
     let isLoggedIn = false;
 
-    if (user) {
+    if (user && token) {
         isLoggedIn = true;
     }
 
-    console.log(isLoggedIn);
     
-
     if(isAuthRoute){
         if(isLoggedIn){
             return Response.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));

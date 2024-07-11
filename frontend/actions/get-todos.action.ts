@@ -1,59 +1,64 @@
 "use server"
 
+import { getCurrentToken } from "@/lib/get-current-token";
 import { getCurrentUser } from "@/lib/get-current-user";
 import axios from "axios";
 
 
 interface Params {
-  nextState?: string;
-  sortBy?: string;
+    nextState?: string;
+    sortBy?: string;
 }
 
 export const getTodos = async (params: Params = {}) => {
 
-  try {
+    try {
+        const currentUser = await getCurrentUser();
+        const currentToken = await getCurrentToken();
 
-    const currentUser = await getCurrentUser();
+        const { nextState, sortBy } = params;
 
-    const { nextState, sortBy } = params;
+        if (!currentUser) {
+          return {
+            error: "User not found",
+          };
+        }
 
-    if (!currentUser) {
+        let apiUrl = `${process.env.BACKEND_URL}/api/user/todos`;
+
+        const pageParams = new URLSearchParams();
+
+        if (nextState) {
+            pageParams.append('pageState', nextState);
+        }
+
+        if (sortBy) {
+            pageParams.append('sortBy', sortBy);
+        }
+
+        if (pageParams.toString()) {
+            apiUrl += `?${pageParams.toString()}`;
+        }
+
+        console.log(apiUrl);
+
+        const response = await axios.get(apiUrl, {
+          headers: {
+            'Authorization': `Bearer ${currentToken}`,
+          }
+        });
+
+        const { todos, nextPageState } = response.data;
+
+        return {
+          todos: todos,
+          nextPageState: nextPageState,
+        };
+
+    } catch (error: any) {
+      console.error('Error:', error);
       return {
-        error: "User not found",
+        error: "An error occurred while processing your request.",
       };
     }
-
-    let apiUrl = `${process.env.BACKEND_URL}/api/todo/${currentUser.id}`;
-
-    const pageParams = new URLSearchParams();
-
-    if (nextState) {
-        pageParams.append('pageState', nextState);
-    }
-
-    if (sortBy) {
-        pageParams.append('sortBy', sortBy);
-    }
-
-    if (pageParams.toString()) {
-        apiUrl += `?${pageParams.toString()}`;
-    }
-
-    console.log(apiUrl);
-
-    const response = await axios.get(apiUrl);
-    const { todos, nextPageState } = response.data;
-
-    return {
-      todos: todos,
-      nextPageState: nextPageState,
-    };
-
-
-  } catch (error: any) {
-    console.error('Error:', error);
-    return {
-      error: "An error occurred while processing your request.",
-    };
-  }
 };

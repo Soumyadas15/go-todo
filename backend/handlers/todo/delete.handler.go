@@ -1,55 +1,63 @@
 package todoHandlers
 
 import (
-    "net/http"
-    "encoding/json"
-    "backend/db/todo"
-    "github.com/gocql/gocql"
+	"backend/db/todo"
+	authHandlers "backend/handlers/auth"
+	"encoding/json"
+	"net/http"
+
+	"github.com/gocql/gocql"
 	"github.com/gorilla/mux"
 )
 
-type DeleteRequest struct {
-    UserID    string   `json:"userId"`
-}
-
 type DeleteResponse struct {
-    Message   string  `json:"message"`
+	Message string `json:"message"`
 }
 
-
+// @Summary Delete a todo by ID
+// @Description Delete a todo item belonging to the authenticated user by its ID
+// @Tags todo
+// @Produce  json
+// @Param Authorization header string true "JWT access token"
+// @Param todoId path string true "Todo ID to delete"
+// @Success 200 {object} DeleteResponse
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/todo/{todoId} [delete]
 func DeleteTodoHandler(w http.ResponseWriter, r *http.Request) {
-    vars := mux.Vars(r)
-    todoIDStr, ok := vars["todoId"]
-    
-    if !ok {
-        http.Error(w, "Missing todoId in URL", http.StatusBadRequest)
-        return
-    }
 
-    todoID, err := gocql.ParseUUID(todoIDStr)
-    if err != nil {
-        http.Error(w, "Invalid todoId", http.StatusBadRequest)
-        return
-    }
+	vars := mux.Vars(r)
 
-    var deleteReq DeleteRequest
-    if err := json.NewDecoder(r.Body).Decode(&deleteReq); err != nil {
-        http.Error(w, "Failed to parse request body", http.StatusBadRequest)
-        return
-    }
+	todoIDStr, ok := vars["todoId"]
+	if !ok {
+		http.Error(w, "Missing todoId in URL", http.StatusBadRequest)
+		return
+	}
 
-    userID, err := gocql.ParseUUID(deleteReq.UserID)
-    if err != nil {
-        http.Error(w, "Invalid userId", http.StatusBadRequest)
-        return
-    }
+	userID, ok := r.Context().Value(authHandlers.UserIdKey).(gocql.UUID)
+	if !ok {
+		http.Error(w, "Unable to parse userId", http.StatusBadRequest)
+		return
+	}
 
-    if err := todo.DeleteTodoByID(todoID, userID); err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-        return
-    }
+	todoID, err := gocql.ParseUUID(todoIDStr)
+	if err != nil {
+		http.Error(w, "Invalid todoId", http.StatusBadRequest)
+		return
+	}
 
-    response := DeleteResponse{Message: "success"}
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(response)
+	if err != nil {
+		http.Error(w, "Invalid userId", http.StatusBadRequest)
+		return
+	}
+
+	if err := todo.DeleteTodoByID(todoID, userID); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	response := DeleteResponse{Message: "success"}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }
