@@ -1,4 +1,5 @@
 import Image from "next/image";
+import background from "@/public/assets/background.jpg"
 
 const AuthLayout = ({ 
   children
@@ -11,12 +12,12 @@ const AuthLayout = ({
               <div className="w-full h-full flex">
                   <div className="bg-[#040d21] overflow-hidden w-[60%] lg:block hidden">
                       <div className="flex items-center justify-center overflow-hidden h-full bg-blue-500">
-                          {/* <Image
-                              src='/images/background.jpg'
+                          <Image
+                              src={background}
                               alt="background"
                               layout="fill"
                               objectFit="cover"
-                          /> */}
+                          />
                       </div>
                   </div>
                   <div className="bg-white dark:bg-[#09090B] overflow-hidden lg:w-[40%] z-10 flex items-center justify-center h-full w-full">

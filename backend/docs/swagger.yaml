@@ -333,7 +333,7 @@ paths:
       summary: Update a todo by ID
       tags:
       - todo
-  /api/todo/mark-complete/{todoId}:
+  /api/todo/{todoId}/complete:
     put:
       description: Mark a todo item as complete for the authenticated user by its
         ID
@@ -376,27 +376,6 @@ paths:
       summary: Mark a todo as complete
       tags:
       - todo
-  /api/todos:
-    get:
-      description: Retrieve all todo items from the database
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/db.Todo'
-            type: array
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Get all todo items
-      tags:
-      - todo
   /api/user/todos:
     get:
       description: Retrieve todo items belonging to the authenticated user
@@ -417,6 +396,10 @@ paths:
       - description: Field to sort by
         in: query
         name: sortBy
+        type: string
+      - description: Sort by created_at
+        in: query
+        name: sortByTime
         type: string
       produces:
       - application/json

@@ -87,6 +87,7 @@ export const TodoCard = ({ todo }: TodoCardProps) => {
                     <DropdownMenuContent align="end">
 
                         <DropdownMenuItem 
+                            disabled={todo.status === 'complete'}
                             className="cursor-pointer gap-2"
                             onClick={() => {
                                 onOpen('editTodoModal', todo.id, todo);
@@ -97,6 +98,7 @@ export const TodoCard = ({ todo }: TodoCardProps) => {
                         </DropdownMenuItem>
 
                         <DropdownMenuItem 
+                            disabled={todo.status === 'complete'}
                             className="cursor-pointer gap-2"
                             onClick={handleMarkAsComplete}
                         >

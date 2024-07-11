@@ -6,6 +6,7 @@ import (
 	authHandlers "backend/handlers/auth"
 	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gocql/gocql"
@@ -61,6 +62,14 @@ func UpdateTodoHandler(w http.ResponseWriter, r *http.Request) {
 	var updateReq UpdateTodoRequest
 	if err := json.NewDecoder(r.Body).Decode(&updateReq); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	updateReq.Title = strings.TrimSpace(updateReq.Title)
+	updateReq.Description = strings.TrimSpace(updateReq.Description)
+
+	if updateReq.Title == "" || updateReq.Description == "" {
+		http.Error(w, "Title and Description cannot be empty", http.StatusBadRequest)
 		return
 	}
 

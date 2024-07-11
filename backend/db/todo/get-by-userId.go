@@ -3,13 +3,15 @@ package todo
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"time"
 
-	"github.com/gocql/gocql"
 	"backend/db"
+
+	"github.com/gocql/gocql"
 )
 
-func GetTodoByUserId(userId gocql.UUID, pageState []byte, pageSize int, sortBy string) ([]db.Todo, []byte, error) {
+func GetTodoByUserId(userId gocql.UUID, pageState []byte, pageSize int, sortBy string, sortByTime bool) ([]db.Todo, []byte, error) {
 	var todos []db.Todo
 	var nextPageState []byte
 
@@ -51,6 +53,12 @@ func GetTodoByUserId(userId gocql.UUID, pageState []byte, pageSize int, sortBy s
 
 	if err := iter.Close(); err != nil {
 		return nil, nextPageState, fmt.Errorf("error fetching todos: %v", err)
+	}
+
+	if sortByTime {
+		sort.Slice(todos, func(i, j int) bool {
+			return todos[i].CreatedAt.Before(todos[j].CreatedAt)
+		})
 	}
 
 	return todos, nextPageState, nil

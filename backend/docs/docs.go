@@ -196,69 +196,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/todo/mark-complete/{todoId}": {
-            "put": {
-                "description": "Mark a todo item as complete for the authenticated user by its ID",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "todo"
-                ],
-                "summary": "Mark a todo as complete",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "JWT access token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Todo ID to mark as complete",
-                        "name": "todoId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/todoHandlers.MarkTodoResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/api/todo/{todoId}": {
             "put": {
                 "description": "Update a todo item for the authenticated user by its ID",
@@ -404,23 +341,54 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/todos": {
-            "get": {
-                "description": "Retrieve all todo items from the database",
+        "/api/todo/{todoId}/complete": {
+            "put": {
+                "description": "Mark a todo item as complete for the authenticated user by its ID",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "todo"
                 ],
-                "summary": "Get all todo items",
+                "summary": "Mark a todo as complete",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Todo ID to mark as complete",
+                        "name": "todoId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/db.Todo"
+                            "$ref": "#/definitions/todoHandlers.MarkTodoResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
                             }
                         }
                     },
@@ -470,6 +438,12 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Field to sort by",
                         "name": "sortBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort by created_at",
+                        "name": "sortByTime",
                         "in": "query"
                     }
                 ],

@@ -26,7 +26,7 @@ type MarkTodoResponse struct {
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router /api/todo/mark-complete/{todoId} [put]
+// @Router /api/todo/{todoId}/complete [put]
 func MarkTodoAsCompleteHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 

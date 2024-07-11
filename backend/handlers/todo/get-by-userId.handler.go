@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"backend/db"
 	"backend/db/todo"
@@ -27,6 +28,7 @@ type GetTodosResponse struct {
 // @Param pageSize query integer false "Number of items per page (default is 4)"
 // @Param pageState query string false "Page state for pagination"
 // @Param sortBy query string false "Field to sort by"
+// @Param sortByTime query string false "Sort by created_at"
 // @Success 200 {object} GetTodosResponse
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
@@ -70,8 +72,24 @@ func GetTodoByUserId(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sortBy := r.URL.Query().Get("sortBy")
+	sortBy = strings.TrimSpace(sortBy)
 
-	todos, nextPageState, err := todo.GetTodoByUserId(userID, decodedPageState, pageSize, sortBy)
+	if sortBy != "" && sortBy != "pending" && sortBy != "complete" {
+		http.Error(w, "Status should be either empty, 'pending', or 'complete'", http.StatusBadRequest)
+		return
+	}
+
+	sortByTimeStr := r.URL.Query().Get("sortByTime")
+	var sortByTime bool
+	if sortByTimeStr != "" {
+		sortByTime, err = strconv.ParseBool(sortByTimeStr)
+		if err != nil {
+			http.Error(w, "Invalid sortByTime", http.StatusBadRequest)
+			return
+		}
+	}
+
+	todos, nextPageState, err := todo.GetTodoByUserId(userID, decodedPageState, pageSize, sortBy, sortByTime)
 	if err != nil {
 		log.Printf("Failed to fetch todos: %v", err)
 		http.Error(w, "Failed to fetch todos", http.StatusInternalServerError)

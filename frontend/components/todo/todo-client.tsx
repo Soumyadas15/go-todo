@@ -16,7 +16,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useRouter, useSearchParams } from "next/navigation";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { 
+    DropdownMenu, 
+    DropdownMenuContent, 
+    DropdownMenuGroup, 
+    DropdownMenuItem, 
+    DropdownMenuTrigger 
+} from "../ui/dropdown-menu";
+import { Checkbox } from "../ui/checkbox";
 
 interface TodoProps {
     todos: Todo[];
@@ -30,6 +37,7 @@ export const TodoClient = ({
 
     const { onOpen } = useModal();
     const [loading, setLoading] = useState<boolean>(false);
+    const [sortByTime, setSortByTime] = useState<boolean>(false);
     const [label, setLabel] = useState<string>('All todos');
     const router = useRouter();
 
@@ -45,6 +53,18 @@ export const TodoClient = ({
         params.set("nextState", nextState);
         }
 
+        const url = `/home?${params.toString()}`;
+        router.push(url);
+    };
+
+    const handleSortByTimeChange = (checked: boolean) => {
+        setSortByTime(checked);
+        const params = new URLSearchParams(existingQuery);
+        if (checked) {
+            params.set("sortByTime", "true");
+        } else {
+            params.delete("sortByTime");
+        }
         const url = `/home?${params.toString()}`;
         router.push(url);
     };
@@ -67,15 +87,8 @@ export const TodoClient = ({
             <div className="h-full w-full flex items-center justify-center">
                 <div className="flex flex-col items-center gap-2">
                     <h1 className="text-2xl font-bold">
-                        Create your first todo
+                        No todos to show
                     </h1>
-                    <Button
-                        onClick={() => {
-                            onOpen('todoModal')
-                        }}
-                    >
-                        Create todo
-                    </Button>
                 </div>
             </div>
         )
@@ -83,26 +96,43 @@ export const TodoClient = ({
 
     return (
         <div className="w-full pt-20 px-4 md:px-14 flex flex-col items-end gap-4">
-            <DropdownMenu>
-                <DropdownMenuTrigger className="w-56">
-                    <Button className="w-full flex items-start" variant={'outline'}>
-                        {label}
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56">
-                    <DropdownMenuGroup>
-                        <DropdownMenuItem onClick={() => handleSelect('')}>
-                            All tasks
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleSelect('pending')}>
-                            Pending
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleSelect('complete')}>
-                            Complete
-                        </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                </DropdownMenuContent>
-            </DropdownMenu>
+
+            <div className="flex items-center gap-6">
+                <div className="flex items-center space-x-2">
+                    <Checkbox 
+                        id="terms" 
+                        checked={sortByTime}
+                        onCheckedChange={(checked : boolean) => handleSortByTimeChange(checked)}
+                    />
+                    <label
+                        htmlFor="terms"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                        Sort by time
+                    </label>
+                </div>
+                <DropdownMenu>
+                    <DropdownMenuTrigger className="w-56">
+                        <Button className="w-full flex items-start" variant={'outline'}>
+                            {label}
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56">
+                        <DropdownMenuGroup>
+                            <DropdownMenuItem onClick={() => handleSelect('')}>
+                                All tasks
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleSelect('pending')}>
+                                Pending
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleSelect('complete')}>
+                                Complete
+                            </DropdownMenuItem>
+                        </DropdownMenuGroup>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+            
             <div className="
                 grid 
                 grid-cols-1 sm:grid-cols-1 
@@ -119,13 +149,15 @@ export const TodoClient = ({
                     </div>
                 ))}
             </div>
-            <Button 
-                variant="outline"
-                onClick={handleNext}
-                disabled={loading}
-            >
-                Next Page
-            </Button>
+            {nextState && (
+                <Button 
+                    variant="outline"
+                    onClick={handleNext}
+                    disabled={loading}
+                >
+                    Next Page
+                </Button>
+            )}
         </div>
     )
 }

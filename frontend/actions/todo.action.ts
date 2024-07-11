@@ -222,7 +222,7 @@ export const markAsComplete = async (todoId : string) => {
 
         const currentUser = await getCurrentUser();
         const currentToken = await getCurrentToken();
-        
+
         const userId = currentUser.id;
         const data = { userId }
 
@@ -234,7 +234,7 @@ export const markAsComplete = async (todoId : string) => {
                 error: "User not found",
             };
         }
-        const apiUrl = `${process.env.BACKEND_URL}/api/todo/mark-complete/${todoId}`
+        const apiUrl = `${process.env.BACKEND_URL}/api/todo/${todoId}/complete`
         const response = await axios.put(apiUrl, data, {
             headers: {
                 'Authorization': `Bearer ${currentToken}`,

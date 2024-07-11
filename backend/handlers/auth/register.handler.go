@@ -5,6 +5,7 @@ import (
 	"backend/db/user"
 	"encoding/json"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -23,6 +24,8 @@ type RegisterRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
+
+var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 
 // @Summary Register
 // @Description Register a new user
@@ -54,7 +57,12 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	req.Password = strings.TrimSpace(req.Password)
 
 	if req.Email == "" || req.Username == "" || req.Password == "" {
-		http.Error(w, "Fields cannot be null", http.StatusBadRequest)
+		http.Error(w, "Fields cannot be empty", http.StatusBadRequest)
+		return
+	}
+
+	if !isValidEmail(req.Email) {
+		http.Error(w, "Invalid email format", http.StatusBadRequest)
 		return
 	}
 
@@ -90,4 +98,8 @@ func Register(w http.ResponseWriter, r *http.Request) {
 func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	return string(bytes), err
+}
+
+func isValidEmail(email string) bool {
+	return emailRegex.MatchString(email)
 }

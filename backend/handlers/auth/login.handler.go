@@ -54,7 +54,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	creds.Password = strings.TrimSpace(creds.Password)
 
 	if creds.Email == "" || creds.Password == "" {
-		http.Error(w, "Fields cannot be null", http.StatusBadRequest)
+		http.Error(w, "Fields cannot be empty", http.StatusBadRequest)
 		return
 	}
 
