@@ -5,6 +5,7 @@ import (
 	"backend/db/user"
 	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gocql/gocql"
@@ -45,6 +46,15 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	id, err := gocql.ParseUUID(uuid.New().String())
 	if err != nil {
 		http.Error(w, "failed to generate UUID", http.StatusInternalServerError)
+		return
+	}
+
+	req.Email = strings.TrimSpace(req.Email)
+	req.Username = strings.TrimSpace(req.Username)
+	req.Password = strings.TrimSpace(req.Password)
+
+	if req.Email == "" || req.Username == "" || req.Password == "" {
+		http.Error(w, "Fields cannot be null", http.StatusBadRequest)
 		return
 	}
 

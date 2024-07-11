@@ -4,8 +4,8 @@ import (
 	"backend/db"
 	"backend/db/user"
 	"encoding/json"
-	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -50,7 +50,13 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("Querying user with email: %s\n", creds.Email)
+	creds.Email = strings.TrimSpace(creds.Email)
+	creds.Password = strings.TrimSpace(creds.Password)
+
+	if creds.Email == "" || creds.Password == "" {
+		http.Error(w, "Fields cannot be null", http.StatusBadRequest)
+		return
+	}
 
 	user, err := user.GetUserByEmail(creds.Email)
 	if err != nil {
