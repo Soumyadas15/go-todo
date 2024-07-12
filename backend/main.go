@@ -5,6 +5,7 @@ import (
 	"backend/router"
 	"log"
 	"net/http"
+	"os"
 
 	_ "backend/docs"
 
@@ -28,5 +29,11 @@ func main() {
 	r := router.Router()
 	r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
 
-	log.Fatal(http.ListenAndServe(":8080", r))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Printf("Starting server on port %s", port)
+	log.Fatal(http.ListenAndServe(":"+port, r))
 }
