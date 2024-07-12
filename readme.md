@@ -119,3 +119,5 @@ To achieve database level pagination, I had to make certain changes in the datab
 ### Additional
 
 I hosted the database container on an Azure virtual machine to avoid the hassle of creating containers before running the app.
+
+![image](./hosted.png)
